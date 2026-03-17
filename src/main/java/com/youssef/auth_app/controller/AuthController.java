@@ -3,6 +3,10 @@ package com.youssef.auth_app.controller;
 import com.youssef.auth_app.DTO.AuthResponse;
 import com.youssef.auth_app.DTO.LoginRequest;
 import com.youssef.auth_app.DTO.RegisterRequest;
+import com.youssef.auth_app.DTO.UserProfileResponse;
+import com.youssef.auth_app.config.JwtUtil;
+import com.youssef.auth_app.model.User;
+import com.youssef.auth_app.repository.UserRepository;
 import com.youssef.auth_app.service.AuthService;
 import com.youssef.auth_app.service.PasswordResetService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +21,10 @@ public class AuthController {
     private AuthService authService;
     @Autowired
     private PasswordResetService passwordResetService;
+    @Autowired
+    private JwtUtil jwtUtil;
+    @Autowired
+    private UserRepository userRepository;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request){
@@ -46,6 +54,19 @@ public class AuthController {
             @RequestParam String newPassword) {
         String response = passwordResetService.resetPassword(token, newPassword);
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileResponse> getMe(
+            @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7);
+        String username = jwtUtil.extractUsername(token);
+        User user = userRepository.findByUserName(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(new UserProfileResponse(
+                user.getUserName(),
+                user.getUserEmail(),
+                user.getUserTel()
+        ));
     }
 }
 
