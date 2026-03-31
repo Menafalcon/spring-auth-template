@@ -36,6 +36,13 @@ public class AuthService {
         if (userRepository.findByUserEmail(request.getUserEmail()).isPresent()){
             throw new RuntimeException("Email already exists");
         }
+        if(request.getUserName().length() < 8) {
+            throw new RuntimeException("Username must be at least 8 characters.");
+        }
+        String passwordRegex = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@#!_])[A-Za-z\\d@#!_]{8,}$";
+        if (!request.getUserPassword().matches(passwordRegex)) {
+            throw new RuntimeException("Password requires 8+ chars, 1 uppercase, 1 number, and 1 special (@#!_).");
+        }
         User user = new User();
         user.setUserName(request.getUserName());
         user.setUserPassword(passwordEncoder.encode(request.getUserPassword()));

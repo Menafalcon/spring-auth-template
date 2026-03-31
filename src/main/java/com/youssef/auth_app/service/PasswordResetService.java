@@ -49,6 +49,10 @@ public class PasswordResetService {
         if (resetToken.isUsed()){
             throw new RuntimeException("Reset Link already used");
         }
+        String passwordRegex = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@#!_])[A-Za-z\\d@#!_]{8,}$";
+        if (!newPassword.matches(passwordRegex)) {
+            throw new RuntimeException("Password requires 8+ chars, 1 uppercase, 1 number, and 1 special (@#!_).");
+        }
         User user = userRepository.findByUserEmail(resetToken.getEmail())
                 .orElseThrow(()-> new RuntimeException("User not found"));
         user.setUserPassword(passwordEncoder.encode(newPassword));
